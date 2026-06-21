@@ -1,0 +1,303 @@
+{% extends "layout.html" %}
+
+{% block title %}📊 Track Stats | F1 Dashboard{% endblock %}
+
+{% block page_header %}{% endblock %}
+
+#---------------------------------------
+# TODO:
+# Track map icons not showing: Monaco (empty), Barcelona (broken image), Hungary (empty), Madrid (shows Barcelona)
+# Various things attempted, cannot seem to fix locally or with API
+#
+# DONE: Style:
+# Lap record must fill/scale horizontally
+# Pit stop times must divide evenly horizontally, under lap record container
+# Style text fonts and colours along /index style
+# Style dropdown along /results style
+#---------------------------------------
+
+{% block content %}
+<div class="max-w-4xl w-full mx-auto px-4 py-4 space-y-6">
+
+    <!-- Page Title -->
+    <div class="flex items-center gap-3 mb-2">
+        <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">Track Stats</h2>
+        <span class="flex-1 border-t border-red-900"></span>
+    </div>
+
+    <!-- GP Selector -->
+    <form method="GET" action="/TrackStats" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <label for="gp_select"
+            class="text-[20px] text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">
+            Select Grand Prix
+        </label>
+        <div class="flex justify-center">
+            <div class="relative inline-block w-full">
+                <select id="gp_select" name="gp" onchange="this.form.submit()"
+                    class="appearance-none w-full bg-black border border-gray-600 text-gray-300 font-mono font-extrabold uppercase text-xs px-5 py-2.5 pr-10 rounded-xl cursor-pointer hover:border-red-600 transition-colors focus:outline-none focus:border-red-600">
+                    <option value="" disabled {% if not selected_gp %}selected{% endif %}>— Select 2026 Grand Prix —
+                    </option>
+                    {% for gp in gp_list %}
+                    <option value="{{ gp.key }}" {% if selected_gp==gp.key %}selected{% endif %}>
+                        Rd {{ gp.round }} · {{ gp.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <svg class="w-3 h-3 text-[#e3cf32]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% if track %}
+
+    <!-- ── CIRCUIT IDENTITY HEADER ───────────────────────────────────── -->
+    <div class="border border-red-900 rounded-lg overflow-hidden">
+        <div class="bg-red-950/30 px-5 py-4 flex flex-wrap items-center gap-4">
+            {% if track.flag_url %}
+            <img src="{{ track.flag_url }}" alt="Country flag"
+                class="h-6 w-auto rounded border border-red-900/60 shadow">
+            {% endif %}
+            <div>
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">
+                    {{ track.circuit_name }}
+                </h2>
+                <p class="text-[20px] font-mono font-bold text-white uppercase tracking-widest">{{ track.official_name
+                    }}</p>
+            </div>
+        </div>
+
+        {% if track.circuit_map %}
+        <div class="border-t border-red-900/40 bg-black/60 flex justify-center py-4 px-4">
+            <img src="{{ track.circuit_map }}" alt="Circuit map" class="h-36 w-auto object-contain opacity-80">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── STAT GRID ─────────────────────────────────────────────────── -->
+    {% if circuit_data %}
+    <div class="flex flex-col gap-3">
+        <!-- Row 1: First GP / Race Laps / Circuit Length -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <!-- First GP -->
+            <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+                <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">First Grand
+                    Prix</span>
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">{{
+                    circuit_data.first_gp if
+                    circuit_data.first_gp else '—' }}</h2>
+            </div>
+            <!-- Race Laps -->
+            <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+                <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">Race Laps</span>
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">{{ circuit_data.laps
+                    if circuit_data.laps
+                    else
+                    '—' }}</h2>
+            </div>
+            <!-- Circuit Length -->
+            <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+                <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">Circuit
+                    Length</span>
+                {% if circuit_data.length_km and circuit_data.length_km is number %}
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">{{
+                    circuit_data.length_km }} km</h2>
+                <span
+                    class="text-xs text-left uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">{{
+                    "%.3f"|format(circuit_data.length_km * 0.621371) }}
+                    mi</span>
+                {% else %}
+                <span class="text-white font-mono font-extrabold text-xl">—</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Row 2: Lap Record — full width -->
+        <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+            <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">Lap Record</span>
+            <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">
+                {{ circuit_data.lap_record if circuit_data.lap_record else '—' }}
+            </h2>
+        </div>
+
+        <!-- Row 3: Pit Stop Loss + VSC Pit Loss — half width each -->
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Pit Stop Loss -->
+            <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+                <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">Pit Stop
+                    Loss</span>
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">
+                    {{ strategy_stats.pit_loss if strategy_stats and strategy_stats.pit_loss else '—' }}
+                </h2>
+            </div>
+            <!-- VSC Pit Loss -->
+            <div class="bg-black border border-gray-800 rounded-lg px-4 py-3 flex flex-col gap-1">
+                <span class="text-[15px] font-mono font-bold text-white uppercase tracking-widest">(Virtual) Safety Car
+                    Pit Loss</span>
+                <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">
+                    {{ strategy_stats.vsc_pit_loss if strategy_stats and strategy_stats.vsc_pit_loss else '—' }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── STRATEGY SECTION ──────────────────────────────────────────── -->
+    {% if circuit_data or strategy_stats %}
+    <div class="border border-gray-800 rounded-lg overflow-hidden">
+        <div class="bg-gray-900/50 border-b border-gray-800 px-5 py-2">
+            <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider">
+                Race Strategy</h2>
+        </div>
+        <div class="px-5 py-4 space-y-4">
+
+            <!-- Expected Strategy -->
+            <div>
+                <span class="text-[20px] font-mono font-bold text-white uppercase tracking-widest">Tyre Strategy
+                </span>
+                <div class="space-y-2">
+                    {% set strats = [
+                    ("Option", "text-[#e3cf32]", circuit_data.option_strategy if circuit_data else None),
+                    ("Alt 1", "text-gray-300", circuit_data.alternate_strategy if circuit_data else None),
+                    ("Alt 2", "text-gray-500", circuit_data.alternate_strategy_2 if circuit_data else None),
+                    ] %}
+                    {% set fallback = strategy_stats.strategy if strategy_stats else None %}
+                    {% set any_shown = namespace(val=false) %}
+                    {% for label, color, strat in strats %}
+                    {% if strat %}
+                    {% set any_shown.val = true %}
+                    <div class="flex items-center gap-3">
+                        <span class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">{{ label
+                            }}</span>
+                        <span class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">{{ strat
+                            }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not any_shown.val and fallback %}
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">Option</span>
+                        <span class="text-white font-mono text-sm">{{ fallback }}</span>
+                    </div>
+                    {% endif %}
+                    {% if not any_shown.val and not fallback %}
+                    <span class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">—</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Safety Car Probability -->
+            {% if strategy_stats and strategy_stats.safety_car is not none %}
+            <div>
+                <p class="text-[20px] font-mono font-bold text-white uppercase tracking-widest">Safety Car
+                    Probability</p>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full {% if strategy_stats.safety_car >= 80 %}bg-red-500{% elif strategy_stats.safety_car >= 50 %}bg-yellow-400{% else %}bg-green-500{% endif %}"
+                            style="width: {{ strategy_stats.safety_car }}%"></div>
+                    </div>
+                    <span class="font-mono font-extrabold text-sm text-white w-10 text-right">{{
+                        strategy_stats.safety_car }}%</span>
+                </div>
+                <p class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">Historical frequency
+                    across F1 races at this venue
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Compound Performance -->
+            {% if circuit_data and circuit_data.compound_performance %}
+            <div>
+                <p class="text-[20px] font-mono font-bold text-white uppercase tracking-widest">Compound
+                    Performance Window (laps)</p>
+                <div class="space-y-2">
+                    {% for compound in circuit_data.compound_performance %}
+                    <div class="flex items-center gap-3">
+                        <span class="w-24 text-xs font-mono font-bold
+                            {% if compound.name == 'SOFT' %}text-red-400
+                            {% elif compound.name == 'MEDIUM' %}text-yellow-400
+                            {% elif compound.name == 'HARD' %}text-gray-300
+                            {% elif compound.name == 'INTERMEDIATE' %}text-green-400
+                            {% elif compound.name == 'WET' %}text-blue-400
+                            {% else %}text-gray-400{% endif %}
+                        ">{{ compound.name }}</span>
+                        <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full
+                                    {% if compound.name == 'SOFT' %}bg-red-500
+                                    {% elif compound.name == 'MEDIUM' %}bg-yellow-400
+                                    {% elif compound.name == 'HARD' %}bg-gray-400
+                                    {% elif compound.name == 'INTERMEDIATE' %}bg-green-400
+                                    {% elif compound.name == 'WET' %}bg-blue-400
+                                    {% else %}bg-gray-500{% endif %}
+                                " style="width: {{ [(compound.optimal_laps / 50 * 100), 100] | min }}%"></div>
+                        </div>
+                        <span class="text-xs font-mono text-gray-400 w-24 text-right whitespace-nowrap">
+                            {% if compound.max_laps %}
+                            {{ compound.optimal_laps }}–{{ compound.max_laps }} laps
+                            {% else %}
+                            ~{{ compound.optimal_laps }} laps
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="text-[17px] font-mono font-bold text-gray-400 uppercase tracking-widest">Estimated competitive
+                    performance window under normal conditions</p>
+            </div>
+            {% endif %}
+
+            <!-- Degradation Time Loss -->
+            {% if circuit_data and circuit_data.deg_loss_per_lap %}
+            <div>
+                <p class="text-[20px] font-mono font-bold text-white uppercase tracking-widest">Tyre Degradation
+                    (time loss/lap)</p>
+                <div class="grid grid-cols-3 gap-3">
+                    {% for deg in circuit_data.deg_loss_per_lap %}
+                    <div class="border border-gray-700 rounded px-3 py-2 text-center">
+                        <span class="text-[35px] font-mono font-extrabold
+            {% if deg.name == 'SOFT' %}text-red-400
+            {% elif deg.name == 'MEDIUM' %}text-yellow-400
+            {% elif deg.name == 'HARD' %}text-gray-300
+            {% else %}text-gray-400{% endif %}
+        ">{{ deg.name }}</span><br>
+                        <span
+                            class="ml-auto text-[30px] font-mono font-extrabold text-black tracking-wider bg-gray-400">{{
+                            deg.loss_s
+                            }}s/lap</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── NO DATA FALLBACK ──────────────────────────────────────────── -->
+    {% if not circuit_data %}
+    <div class="border border-dashed border-gray-700 rounded-lg px-5 py-8 text-center">
+        <p class="text-gray-500 font-mono text-sm">Detailed circuit data for <span class="text-white">{{
+                track.circuit_name }}</span> hasn't been added yet.</p>
+        <p class="text-gray-600 font-mono text-xs mt-1">Add an entry to <code class="text-gray-400">CIRCUIT_DATA</code>
+            in helpers.py to populate this section.</p>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- ── NO GP SELECTED ────────────────────────────────────────────── -->
+    <div class="border border-dashed border-gray-700 rounded-lg px-5 py-12 text-center">
+        <h2 class="text-lg text-left uppercase font-extrabold font-mono tracking-wider text-gray-300">Select a Grand
+            Prix
+            above</h2>
+        <p class="text-xs text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">Circuit
+            stats, tyre strategies, and lap records will appear here.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

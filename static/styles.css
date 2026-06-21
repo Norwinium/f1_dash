@@ -1,0 +1,182 @@
+/* Retro 1990s-style pixelated gray-300 borders & fonts */
+:root {
+    color-scheme: dark;
+}
+
+html,
+body {
+    font-size: 160%;
+    background: #000 !important;
+    color: #d1d5db !important;
+    text-rendering: optimizeLegibility;
+}
+
+/* Force pixelated gray-300 borders for all Tailwind border utilities */
+[class*="border-"] {
+    border-color: #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+    border-style: solid !important;
+}
+
+/* Standardize font sizes to match the weather forecast quadrant */
+.text-lg {
+    font-size: 1.125rem !important;
+    line-height: 1.25 !important;
+}
+
+.text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1 !important;
+}
+
+.border,
+.border-gray-300,
+.border-t,
+.border-b,
+.border-l,
+.border-r {
+    border-color: #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+}
+
+/* Flatten rounded shapes for blocky DOS-era look */
+.rounded-xl,
+.rounded-lg,
+.rounded-full,
+.rounded-md,
+.rounded-sm,
+.rounded,
+.rounded-none {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Outline cards and containers in crisp gray-300 */
+.bg-black,
+.bg-black\/20,
+.bg-black\/30,
+.bg-black\/40,
+.bg-black\/50,
+.bg-black\/60,
+.bg-black\/70,
+.bg-black\/80,
+.bg-black\/90,
+.bg-black\/95,
+.bg-gray-900,
+.bg-gray-950 {
+    outline: 1px solid #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+    outline-offset: -1px;
+    box-shadow: none !important;
+}
+
+/* Emphasize headers, buttons, and interactive elements */
+a,
+button,
+input,
+select,
+textarea {
+    color: #d1d5db !important;
+    /* Unified: From off-white (#f8f8f2) to gray-300 */
+    background: #000 !important;
+    border-color: #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+    border-style: solid !important;
+    text-shadow: 0 0 1px rgba(209, 213, 219, 0.5);
+    image-rendering: pixelated;
+}
+
+a:hover,
+button:hover,
+input:hover,
+select:hover,
+textarea:hover {
+    background: #111 !important;
+}
+
+/* Force header text to true white despite global form/link overrides */
+header,
+header * {
+    color: #ffffff !important;
+}
+
+/* Retro pixel text rendering */
+* {
+    image-rendering: pixelated;
+    text-rendering: geometricPrecision;
+}
+
+/* Table borders and cells in gray-300 for strict retro display */
+table,
+th,
+td {
+    border-color: #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+    border-style: solid !important;
+}
+
+/* Remove inner shadows from cards for flat 90s UI */
+.shadow-2xl,
+.shadow-inner,
+.shadow-sm {
+    box-shadow: none !important;
+}
+
+/* Make all H2 elements stand out with yellow background and black text */
+h2 {
+    background: #e3cf32 !important;
+    color: #000 !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+/* Style paragraphs beneath H2 sections with light gray background and black text */
+.article-text h2+p,
+.article-text h2~p {
+    background: #e5e7eb !important;
+    color: #000 !important;
+    padding: 0.4rem 0.5rem !important;
+    border-radius: 0.25rem !important;
+    margin-top: 0.5rem !important;
+}
+
+/* Button-like anchor styling */
+a {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    margin: 0;
+}
+
+/* Stronger focus outlines for keyboard navigation using gray-300 */
+:focus-visible {
+    outline: 2px solid #d1d5db !important;
+    /* Unified: From white (#ffffff) to gray-300 */
+    outline-offset: 2px !important;
+}
+
+/* Enhanced CRT phosphor glow and screen bloom effect */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    /* Expanded gradients with higher opacity drops to simulate screen bloom */
+    background:
+        radial-gradient(circle at 50% 15%, rgba(209, 213, 219, 0.25), transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(209, 213, 219, 0.12), transparent 25%),
+        radial-gradient(circle at 80% 70%, rgba(209, 213, 219, 0.12), transparent 25%),
+        /* Optional: Subtle vertical scanline simulation for that true 90s glass tube feel */
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+
+    /* Raised opacity from 0.15 to 0.45 for a much more pronounced effect */
+    opacity: 0.45;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 4px, 6px 100%; /* Powers the scanlines */
+    z-index: 9998;
+}
+
+/* Override global retro anchor blocks for current active sessions */
+a.active-session-pill {
+    background: #e3cf32 !important;
+    color: #000000 !important;
+    border-color: #e3cf32 !important;
+}

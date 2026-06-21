@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{% if current_view == 'constructors' %}🏆 Constructor's Championship Standings{% else %}🏆 Driver's Championship Standings{%
+endif %}
+{% endblock %}
+
+<!-- Override the live session header with a seasonal championship hero block -->
+{% block page_header %}
+<div class="max-w-7xl w-full mx-auto px-4">
+    <div
+        class="flex flex-wrap items-center justify-center gap-2 bg-black border border-red-900 px-4 py-1.5 rounded-full text-xs shadow-inner mb-4">
+        <span class="text-[#e3cf32] font-extrabold font-mono tracking-wider whitespace-nowrap">
+            2026 SEASON
+        </span>
+        <span class="text-white font-bold">|</span>
+        <span class="text-white font-extrabold font-mono tracking-wider whitespace-nowrap">
+            FIA FORMULA 1 WORLD CHAMPIONSHIP
+        </span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl w-full mx-auto px-4 flex flex-col space-y-6">
+
+    <div class="h-1"></div>
+
+    <!-- STANDINGS TYPE SELECTOR BAR -->
+    <div
+        class="bg-black/40 uppercase font-mono font-extrabold border border-gray-600 p-2 rounded-xl flex flex-wrap gap-2 justify-center items-center">
+        <!-- Driver Standings Link -->
+        <a href="/Standings?view=drivers" class="text-xs px-4 py-2 transition-all border font-black tracking-wider rounded-lg
+           {% if current_view == 'drivers' %}
+                active-session-pill shadow-md border-[#e3cf32] text-[#e3cf32] bg-black
+           {% else %}
+                bg-black text-gray-400 border-gray-600 hover:text-gray-300 hover:bg-black
+           {% endif %}">
+            Driver's Standings
+        </a>
+
+        <!-- Constructor Standings Link -->
+        <a href="/Standings?view=constructors" class="text-xs px-4 py-2 transition-all border font-black tracking-wider rounded-lg
+           {% if current_view == 'constructors' %}
+                active-session-pill shadow-md border-[#e3cf32] text-[#e3cf32] bg-black
+           {% else %}
+                bg-black text-gray-400 border-gray-600 hover:text-gray-300 hover:bg-black
+           {% endif %}">
+            Constructor's Standings
+        </a>
+    </div>
+
+    <!-- FULL PAGE CHAMPIONSHIP STANDINGS TABLE -->
+    <div class="bg-black rounded-xl border border-gray-600 shadow-2xl overflow-hidden mb-12">
+        <div class="px-5 py-4 border-b border-gray-600 bg-black/20">
+            <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">
+                {% if current_view == 'constructors' %}Constructor's Championship Standings{% else %}Driver's
+                Championship Standings{% endif %}
+            </h2>
+        </div>
+
+        {% if standings %}
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr
+                        class="border-b border-gray-600 text-xs uppercase font-mono font-extrabold text-white bg-black/40">
+                        <th class="py-3 px-4 text-center w-12">Pos</th>
+
+                        <!-- Dynamic Entity Header -->
+                        {% if current_view == 'constructors' %}
+                        <th class="py-3 px-4">Constructor</th>
+                        {% else %}
+                        <th class="py-3 px-4">Driver</th>
+                        <th class="py-3 px-4 hidden sm:table-cell">Constructor</th>
+                        {% endif %}
+
+                        <th class="py-3 px-4 text-right font-mono w-32">Points</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60">
+                    {% for pilot in standings %}
+                    <tr class="hover:bg-black/40 transition-colors">
+                        <!-- Position Column -->
+                        <td
+                            class="py-3.5 px-4 text-center font-mono text-xs font-black text-gray-400 align-middle relative">
+                            <div class="absolute left-0 top-0 bottom-0 w-1"
+                                style="background-color: {{ pilot.team_color }};"></div>
+                            {{ pilot.pos }}
+                        </td>
+
+                        <!-- Dynamic Row Rendering based on view -->
+                        {% if current_view == 'constructors' %}
+                        <!-- Constructor Mode -->
+                        <td
+                            class="py-3.5 px-4 align-middle text-sm font-extrabold font-mono text-gray-300 tracking-wide uppercase">
+                            {{ pilot.team }}
+                        </td>
+                        {% else %}
+                        <!-- Driver Mode -->
+                        <td class="py-3.5 px-4 align-middle">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-extrabold font-mono text-gray-300 tracking-wide uppercase">{{
+                                    pilot.driver }}</span>
+                                <span class="text-[10px] text-gray-400 mt-0.5 sm:hidden">{{ pilot.team }}</span>
+                            </div>
+                        </td>
+                        <td
+                            class="py-3.5 px-4 text-xs uppercase font-extrabold font-mono text-gray-400 align-middle hidden sm:table-cell">
+                            {{ pilot.team }}
+                        </td>
+                        {% endif %}
+
+                        <!-- Total Points Column -->
+                        <td class="py-3.5 px-4 text-right align-middle">
+                            <span
+                                class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-mono font-bold text-gray-100 bg-black px-2 py-0.5 rounded border border-gray-600/60">
+                                {{ pilot.points|int }}
+                                <span class="text-[9px] text-gray-400 font-normal uppercase tracking-tight">pts</span>
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16 px-4">
+            <p class="text-sm text-gray-400 font-medium">Seasonal calculation scores are currently processing for this
+                year.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

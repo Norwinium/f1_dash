@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+
+{% block title %}🏁 Session Analysis & Classification{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl w-full mx-auto px-4 flex flex-col space-y-6">
+
+    <div class="h-1"></div>
+
+    <!-- SYSTEM DISCLAIMER NOTICE -->
+    <div class="max-w-xl mx-auto w-full border border-dashed border-red-900/40 bg-red-950/5 rounded-xl p-3 text-center">
+        <p class="font-mono text-[15px] text-white uppercase tracking-wider leading-relaxed">
+            <span class="text-[#e3cf32] font-mono font-extrabold mr-1">Disclaimer:</span> Statistics pulled from
+            historical telemetry data do not account for application of penalties and can feature other anomalies. Thus
+            the results below will not always be accurate.
+        </p>
+    </div>
+
+    <!-- SEASON ROUND SELECTOR DROPDOWN -->
+    {% if season_meetings %}
+    <div class="flex justify-center">
+        <div class="relative inline-block">
+            <select onchange="if(this.value) window.location.href='/Results?round=' + this.value"
+                class="appearance-none bg-black border border-gray-600 text-gray-300 font-mono font-extrabold uppercase text-xs px-5 py-2.5 pr-10 rounded-xl cursor-pointer hover:border-red-600 transition-colors focus:outline-none focus:border-red-600">
+                <option value="" {% if not selected_round %}selected{% endif %}>— Select Race Weekend —</option>
+                {% for meeting in season_meetings %}
+                <option value="{{ meeting.round }}" {% if selected_round and selected_round|int==meeting.round|int
+                    %}selected{% endif %}>
+                    R{{ meeting.round }} · {{ meeting.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                <svg class="w-3 h-3 text-[#e3cf32]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CONDITIONAL CONTENT: ONLY SHOWS IF AN EVENT IS SELECTED -->
+    {% if selected_round %}
+
+    <!-- CHRONOLOGICAL SESSION SELECTOR -->
+    {% if weekend_sessions %}
+    <div
+        class="bg-black/40 uppercase font-mono font-extrabold border border-gray-600 p-2 rounded-xl flex flex-wrap gap-2 justify-center items-center">
+        {% for s in weekend_sessions %}
+
+        {# Cast keys to strings to ensure matching numbers works flawlessly #}
+        {% set is_active = current_session and current_session.session_key|string == s.session_key|string %}
+
+        <a href="/Results?{% if selected_round %}round={{ selected_round }}&{% endif %}session={{ s.session_key }}"
+            class="text-xs px-4 py-2 transition-all border font-black tracking-wider
+                      {{ 'active-session-pill shadow-md' if is_active else 'text-gray-400 border-gray-600 hover:text-gray-300 hover:bg-black' }}">
+            {{ s.session_name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <!-- CLASSIFICATION TABLE -->
+    <div class="bg-black rounded-xl border border-gray-600 shadow-2xl overflow-hidden mb-12">
+        <div class="px-5 py-4 border-b border-gray-600 flex justify-between items-center bg-black/20">
+            <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">Classification</h2>
+        </div>
+
+        {% if results %}
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr
+                        class="border-b border-gray-600 text-xs uppercase font-mono font-extrabold text-white bg-black/40">
+                        <th class="py-3 px-4 text-center w-12">Pos</th>
+                        <th class="py-3 px-4">Driver</th>
+                        <th class="py-3 px-4 hidden sm:table-cell">Constructor</th>
+                        <th class="py-3 px-4 text-right font-mono">Best Lap</th>
+                        <th class="py-3 px-4 text-right font-mono w-28">Gap</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60">
+                    {% for driver in results %}
+                    <tr class="hover:bg-black/40 transition-colors {% if driver.is_dnf %}opacity-50{% endif %}">
+
+                        <!-- Pos -->
+                        <td class="py-3.5 px-4 text-center font-mono text-xs font-bold align-middle relative">
+                            <div class="absolute left-0 top-0 bottom-0 w-1"
+                                style="background-color: {{ driver.team_color }};"></div>
+                            {% if driver.is_dnf %}
+                            <span class="text-red-500">DNF</span>
+                            {% else %}
+                            <span class="text-gray-300">{{ driver.pos }}</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Driver -->
+                        <td class="py-3.5 px-4 align-middle">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-extrabold font-mono text-gray-300 tracking-wide">{{
+                                    driver.driver }}</span>
+                                <span class="text-[10px] text-gray-400 mt-0.5 sm:hidden">{{ driver.team }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Constructor -->
+                        <td
+                            class="py-3.5 px-4 text-xs uppercase font-extrabold font-mono text-gray-400 align-middle hidden sm:table-cell">
+                            {{ driver.team }}
+                        </td>
+
+
+                        <!-- Best Lap -->
+                        <td class="py-3.5 px-4 text-right font-mono text-xs font-bold text-gray-200 align-middle">
+                            {{ driver.time_str }}
+                        </td>
+
+                        <!-- Gap -->
+                        <td class="py-3.5 px-4 text-right font-mono text-xs font-medium align-middle">
+                            <span
+                                class="{% if driver.is_dnf %}text-red-500 font-bold{% elif driver.pos == 1 %}text-purple-400 font-bold text-[10px] tracking-wider{% else %}text-gray-400{% endif %}">
+                                {{ driver.gap_str }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16 px-4">
+            <p class="text-sm text-gray-400 font-medium">Telemetry data stream or lap entries are unpopulated for this
+                session frame.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- EMPTY STATE CALL TO ACTION -->
+    <div
+        class="flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-xl py-20 px-4 bg-black/10">
+        <svg class="w-10 h-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.042 9.152c.582.448 1.148.89 1.676 1.345m-1.676-1.345c-.58-.447-1.144-.888-1.666-1.339m1.666 1.339v5.93m0-5.93H10.5M16.5 15.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 12c0 5.385 4.365 9.75 9.75 9.75s9.75-4.365 9.75-9.75S17.385 2.25 12 2.25 2.25 6.615 2.25 12Z" />
+        </svg>
+        <h3 class="text-sm font-mono uppercase font-extrabold text-gray-400 tracking-wider">No Weekend Selected</h3>
+        <p class="text-xs font-mono text-gray-500 mt-1 text-center max-w-xs">Please pick a race weekend from the menu
+            above to run session classification analytics.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

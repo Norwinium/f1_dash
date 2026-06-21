@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}F1 Dashboard{% endblock %}</title>
+        <!-- Tailwind CSS Engine -->
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <style>
+            /* Smooth scrolling and transitions */
+            html {
+                scroll-behavior: smooth;
+            }
+        </style>
+    </head>
+
+    <body class="bg-black text-gray-300 min-h-screen flex flex-col justify-between font-sans">
+
+        <!-- Global Navigation Header -->
+        <header class="bg-black border-b border-gray-600 sticky top-0 z-50">
+            <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-2">
+                    <img src="{{ url_for('static', filename='f1-logo-png_seeklogo-468334.png') }}" alt="Formula 1 logo"
+                        class="h-10 w-auto" />
+                </div>
+
+                <!-- Navigation Links -->
+                <nav
+                    class="text-white uppercase font-mono font-extrabold flex flex-wrap justify-center gap-2 sm:justify-end">
+                    <a href="/" class="text-sm px-3 py-2 rounded-md hover:bg-black transition text-white">
+                        Next Session
+                    </a>
+                    <a href="/Results"
+                        class="text-sm px-3 py-2 rounded-md text-white hover:text-white hover:bg-black transition">
+                        Results
+                    </a>
+                    <a href="/Standings"
+                        class="text-sm px-3 py-2 rounded-md text-white hover:text-white hover:bg-black transition">
+                        Standings
+                    </a>
+                    <a href="/TrackStats"
+                        class="text-sm px-3 py-2 rounded-md text-white hover:text-white hover:bg-black transition">
+                        Track Stats
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Dynamic Main Workspace Injection Point -->
+        <main class="flex-grow flex flex-col items-center justify-start p-4">
+            {% block page_header %}
+            {% set header_session = current_session if current_session else session %}
+
+            <!-- Persistent hero header: always render with safe fallbacks for reliability -->
+            <div class="max-w-4xl w-full mx-auto px-4">
+                <div
+                    class="flex flex-wrap items-center justify-center gap-2 bg-black border border-red-900 px-3 py-1 rounded-full text-xs shadow-inner mb-4">
+                    {% if header_session and circuit %}
+                    {% if circuit.flag_url %}
+                    <img src="{{ circuit.flag_url }}" alt="Country Flag"
+                        class="h-3 w-auto rounded border border-red-900 shadow-sm" />
+                    {% endif %}
+                    <span class="text-[#e3cf32] font-extrabold font-mono tracking-wider whitespace-nowrap">
+                        {% if header_session.session_name %}
+                        {{ header_session.session_name.upper().replace('WEEKEND', '').replace(' ', ' ').strip() }}
+                        {% else %}
+                        SESSION
+                        {% endif %}
+                    </span>
+                    <span class="text-white font-bold">|</span>
+                    <span class="text-white font-extrabold font-mono tracking-wider whitespace-nowrap">
+                        {{ circuit.official_name if circuit and circuit.official_name else (header_session.location if
+                        header_session and header_session.location else 'Loading...') }}
+                    </span>
+                    {% else %}
+                    <span class="text-red-500 text-sm font-medium">Failed to load session details... server busy</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endblock %}
+
+            {% block content %}
+            <!-- Page contents go here -->
+            {% endblock %}
+        </main>
+
+        <!-- Global Footer -->
+        <footer class="bg-black border-t border-gray-600 py-4 text-center">
+            <p class="text-xs text-gray-500 font-medium px-4">
+                This is an independent, non-commercial student project built for CS50x in 2026. This web app is not
+                affiliated with, endorsed by,
+                or connected to the FIA, Formula 1 Management, or any F1 team. All trademarks belong to their respective
+                owners | Powered by OpenF1, Jolpica and Open-Meteo APIs.
+            </p>
+        </footer>
+    </body>
+
+</html>

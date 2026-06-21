@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+
+{% block title %}🏎️ F1 Dashboard{% endblock %}
+{% block content %}
+{% if session %}
+
+<div class="relative max-w-4xl w-full mx-auto px-3 flex flex-col space-y-4">
+
+    <!-- MAIN TWO-COLUMN VIEW GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pb-4">
+
+        <!-- LEFT SIDE: TIMEKEEPING & SPECS -->
+        <div class="space-y-6 flex flex-col justify-between">
+
+            <!-- PANEL 1: COUNTDOWN -->
+            <div
+                class="bg-black rounded-xl shadow-2xl border border-gray-600 p-6 flex flex-col justify-center text-left">
+                <div id="session-card" data-utc="{{ session.date_start }}"
+                    data-next-utc="{{ next_session.date_start if next_session else session.date_start }}"
+                    data-timezone="{{ circuit.timezone if circuit else 'UTC' }}" class="space-y-6">
+                    <div>
+                        <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">Grand Prix
+                            Countdown</h2>
+                        <p
+                            class="text-xs text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">
+                            Wait until 5 lights, 4 lights, 3 lights,<br> 2 lights, 1 light and it's go, go, go!</p>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 bg-black p-4 rounded-lg">
+                        <div><span id="days"
+                                class="text-sm text-white uppercase font-extrabold font-mono tracking-wider">00</span><span
+                                class="text-sm text-gray-400 lowercase font-extrabold font-mono tracking-wider">Days</span>
+                        </div><br>
+                        <div><span id="hours"
+                                class="text-sm text-white uppercase font-extrabold font-mono tracking-wider">00</span><span
+                                class="text-sm text-gray-400 lowercase font-extrabold font-mono tracking-wider">Hrs</span>
+                        </div><br>
+                        <div><span id="minutes"
+                                class="text-sm text-white uppercase font-extrabold font-mono tracking-wider">00</span><span
+                                class="text-sm text-gray-400 lowercase font-extrabold font-mono tracking-wider">Min</span>
+                        </div><br>
+                        <div><span id="seconds"
+                                class="text-sm text-[#e3cf32] uppercase font-extrabold font-mono tracking-wider">00</span><span
+                                class="text-sm text-gray-400 lowercase font-extrabold font-mono tracking-wider">Sec</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-600 pt-4 text-left">
+                        <p class="text-sm text-gray-400 uppercase font-extrabold font-mono tracking-wider">
+                            Next session is {{ next_session.session_name.upper().replace('WEEKEND', '').replace(' ', '
+                            ').strip() }}
+                        </p>
+                        <p id="local-time" class="text-sm text-white uppercase font-extrabold font-mono tracking-wider">
+                            Calculating local schedule...</p>
+                        <p class="text-sm text-gray-400 uppercase font-extrabold font-mono tracking-wider">
+                            Grand Prix:
+                        </p>
+                        <p id="grand-prix-start"
+                            class="text-sm text-white uppercase font-extrabold font-mono tracking-wider">
+                            Loading race start...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 2: CIRCUIT INFO -->
+            <div
+                class="bg-black rounded-xl shadow-2xl border border-gray-600 p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                    <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider">Circuit Info</h2>
+                    <p
+                        class="text-xs text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">
+                        {{
+                        circuit.circuit_name if circuit else "Track Layout" }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div class="bg-black/40 border border-gray-600 p-3 rounded-lg">
+                        <p class="text-white text-xs">Track Type</p>
+                        <p class="text-sm text-gray-400 uppercase font-extrabold font-mono tracking-wider">{{
+                            circuit.type if circuit else "Permanent" }}</p>
+                    </div>
+                    <div class="bg-black/40 border border-gray-600 p-3 rounded-lg">
+                        <p class="text-white text-xs">Track Time Offset</p>
+                        <p class="text-sm text-gray-400 uppercase font-extrabold font-mono tracking-wider">GMT+ {{
+                            circuit.gmt_offset if circuit else "N/A" }}</p>
+                        <p id="dst-label"
+                            class="text-xs text-gray-400 uppercase font-extrabold font-mono tracking-wider"></p>
+                    </div>
+                </div>
+
+                {% if circuit and circuit.circuit_map %}
+                <div class="bg-black/60 p-4 rounded-lg flex items-center justify-center border border-gray-600">
+                    <img src="{{ circuit.circuit_map }}" alt="Track map silhouette layout"
+                        class="max-h-28 w-auto object-contain filter invert opacity-80" />
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: FORECAST OUTLOOK & HISTORICAL INSIGHTS -->
+        <div class="space-y-6 flex flex-col justify-between">
+
+            <!-- PANEL 3: FORECAST OUTLOOK -->
+            <div class="bg-black rounded-xl shadow-2xl border border-gray-600 p-6 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">Track Weekend
+                        Forecast</h2>
+                    <p
+                        class="text-xs text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">
+                        weekend outlook</p>
+                </div>
+                {% if weather %}
+                <div class="space-y-3 mt-4">
+                    {% for day in weather %}
+                    <div class="flex items-center justify-between bg-black/50 p-3 rounded-lg border border-gray-600">
+                        <div>
+                            <p class="text-sm text-gray-400 uppercase font-extrabold font-mono tracking-wider">{{
+                                day.date }}</p>
+                            <p class="text-xs text-white mt-0.5">{{ day.condition }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-300 uppercase font-extrabold font-mono tracking-wider">{{
+                                day.max_temp }}°C <span class="text-white font-normal text-xs">/ {{ day.min_temp
+                                    }}°C</span></p>
+                            <p class="text-xs text-white mt-0.5">💧 {{ day.rain_prob }}% Rain</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-black/40 border border-gray-600 p-6 rounded-lg text-center my-auto mt-4">
+                    <p class="text-sm text-gray-400">Weather forecast details synchronizing...</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- PANEL 4: STRATEGY & HISTORICAL VENUE SUMMARY -->
+            <div
+                class="bg-black rounded-xl shadow-2xl border border-gray-600 p-6 flex flex-col justify-between h-full min-h-[400px]">
+                <div>
+                    <h2 class="text-lg uppercase font-extrabold font-mono tracking-wider text-gray-300">Strategy</h2>
+                    <p
+                        class="text-xs text-right uppercase font-extrabold font-mono tracking-wider text-black bg-gray-400">
+                        Previous benchmarks
+                    </p>
+                </div>
+
+                <div
+                    class="bg-black/40 border border-gray-600 p-4 rounded-lg flex flex-col justify-between flex-grow mt-4">
+
+                    <div class="flex flex-col justify-center flex-grow text-center">
+                        <p class="text-white text-xs">Pirelli Pit Strategy</p>
+                        <span
+                            class="text-xs uppercase font-bold text-gray-400 font-extrabold font-mono tracking-wider block mt-1">
+                            {{ strategy.strategy }}
+                        </span>
+                        <p class="text-white text-xs mt-1">Est. Stop Time Loss: {{ strategy.pit_loss }}</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-600 flex-grow flex flex-col justify-end">
+                        <div class="flex justify-between items-end mb-2">
+                            <p class="text-white text-xs">Safety Car Probability</p>
+                            <span class="text-white text-xs">{{ strategy.safety_car }}%</span>
+                        </div>
+
+                        <div class="relative w-full h-16 flex items-center justify-center overflow-hidden">
+                            <svg class="w-36 h-18" viewBox="0 0 100 50">
+                                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1f2937" stroke-width="12"
+                                    stroke-linecap="round" />
+                                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#d1d5db" stroke-width="12"
+                                    stroke-linecap="round" stroke-dasharray="125.66"
+                                    stroke-dashoffset="{{ 125.66 - (strategy.safety_car / 100 * 125.66) }}"
+                                    class="transition-all duration-1000 ease-out" />
+                            </svg>
+
+                            <div class="absolute bottom-0 w-1 h-8 bg-[#e3cf32] rounded-t-full origin-bottom"
+                                style="transform: rotate({{ -90 + (strategy.safety_car * 1.8) }}deg);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endif %}
+{% endblock %}
