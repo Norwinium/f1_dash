@@ -1,6 +1,6 @@
 # F1 Dashboard
 
-#### Video Demo: https://youtu.be/3bLehXZkPDI
+#### Video Demo: [https://youtu.be/3bLehXZkPDI]
 
 #### Description:
 
